@@ -20,8 +20,8 @@ struct char_details {
   char name[100];
   SPECIES species;
   int max_hp;
-  int current_hp;
-  int strength;
+  int damage_taken;
+  int str;
   int intel;
   int charm;
 };

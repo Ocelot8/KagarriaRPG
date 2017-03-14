@@ -2,23 +2,25 @@
 
 //This is the introduction text that greets the player, explaing the back story and the game
 void introduction(){
-  printf("Welcome to the world of Kagarria.\n\n");
-  printf("Kagarria exists in a point of potential war. The Humans are getting ready to advance and wipe out the Furkin. ");
-  printf("The Furkin and bracing on the defense, trusting to their walls and warriors for their survival. ");
-  printf("The Storm Elves watch warily, trusting neither side while he Forest Elves prepare to aid the Furkin in the war.\n");
-  printf("\nYou are an adventurer starting in a human city. Your journey starts now...\n");
+  screenStart();
+  mvprintw(0,0,"Welcome to the world of Kagarria.");
+  mvprintw(2,0,"Kagarria exists in a point of potential war. The Humans are getting ready to advance and wipe out the Furkin. ");
+  mvprintw(3,0,"The Furkin and bracing on the defense, trusting to their walls and warriors for their survival. ");
+  mvprintw(4,0,"The Storm Elves watch warily, trusting neither side while he Forest Elves prepare to aid the Furkin in the war.");
+  mvprintw(6,0,"You are an adventurer starting in a human city. Your journey starts now...");
 }
 
 char * getName(){
+  screenStart();
   char * char_name = (char*)malloc(sizeof(char)*100);
-
   char mesg[] = "Enter your character's name: ";
+  char returns[] = "Your character's name has been set to";
   int row, col;
   getmaxyx(stdscr, row, col);
   mvprintw(row/2, (col-strlen(mesg))/2, "%s", mesg);
   getstr(char_name);
-  refresh();
-  mvprintw(LINES - 2, 0, "You character's name has been set to %s", char_name);
+  screenStart();
+  mvprintw(row/2, ((col-strlen(returns))/2)-(strlen(char_name)/2), "%s %s", returns, char_name);
   refresh();
   getchar();
   clear();
@@ -61,8 +63,6 @@ SPECIES getSpecies(){
 struct char_details getPC(){
   struct char_details this;
 
-  int choice;
-
   char * name = getName();
   strcpy(this.name, name);
   this.species = 0;
@@ -79,21 +79,21 @@ struct char_details allocatePoints(struct char_details this){
   getmaxyx(stdscr, row, col);
 
   int free_points = 10;
-  this.strength = 1;
+  this.str = 1;
   this.intel = 1;
   this.charm = 1;
 
   char number[1];
 
   mvprintw(5,(col/2)-20,"Choose which skill you would like to level up:");
-  mvprintw(7, (col/2) - 14, "Strength: 0   Intel: 1    Charm: 2");
+  mvprintw(7, (col/2) - 14, "Strength: 0   Intel: 1   Charm: 2");
 
   while (free_points > 0){
       refresh();
       number[0] = getchar();
       if (number[0] == '0' || number[0] == '1' || number[0] == '2'){
         if (number[0] == '0'){
-          this.strength++;
+          this.str++;
         }
         else if (number[0] == '1'){
           this.intel++;
@@ -102,18 +102,22 @@ struct char_details allocatePoints(struct char_details this){
           this.charm++;
         }
         free_points--;
-        mvprintw(9, (col/2)-14,"Strength: %d   Intel: %d   Charm: %d", this.strength,this.intel,this.charm);
+        mvprintw(9, (col/2)-14,"Strength: %d   Intel: %d   Charm: %d", this.str,this.intel,this.charm);
       }
       else{
         mvprintw(13, 10, "Please enter a number between 0-2");
       }
   }
-  this.max_hp = this.strength * 3; //hp max is 3 x strength
-  this.current_hp = this.max_hp;
-
+  this.max_hp = this.str * 3; //hp max is 3 x strength
+  this.damage_taken = 0;
   return this;
 }
 
+/* function displayStats(character)
+* Outputs the stats of an character to the terminal
+* Designed to return in a readable format
+*
+*/
 void displayStats(struct char_details character){
   int row,col;
   getmaxyx(stdscr, row, col);
@@ -122,11 +126,10 @@ void displayStats(struct char_details character){
   mvprintw((row/2)-3,(col-strlen(character.name))/2,"Character Name: %s",character.name);
   mvprintw((row/2)-2,(col-strlen(character.name))/2,"Species: %s", speciesFetch(character.species));
   mvprintw((row/2)-1,(col-strlen(character.name))/2,"Max HP: %d",character.max_hp);
-  mvprintw((row/2),(col-strlen(character.name))/2,"Current HP: %d",character.current_hp);
-  mvprintw((row/2)+1,(col-strlen(character.name))/2,"Strength: %d",character.strength);
+  mvprintw((row/2),(col-strlen(character.name))/2,"Damage taken: %d",character.damage_taken);
+  mvprintw((row/2)+1,(col-strlen(character.name))/2,"Strength: %d",character.str);
   mvprintw((row/2)+2,(col-strlen(character.name))/2,"Intel: %d",character.intel);
   mvprintw((row/2)+3,(col-strlen(character.name))/2,"Charm: %d",character.charm);
-
   refresh();
   getchar();
 }
@@ -143,7 +146,6 @@ char* speciesFetch(SPECIES species_enum){
     case FURKIN : strcpy(species, "Furkin");
     break;
     default : strcpy(species, "Unknown");
-    printw("Output %d", species_enum);
     break;
   }
   return species;
